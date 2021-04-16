@@ -39,12 +39,34 @@ def _test_on_blank_image():
 
 def _test_on_real_image():
   # execute only if run as a script
+  def _test_on_real_image():
+  # execute only if run as a script
   image = cv2.imread('images/chairbot_noAR_1.png')
   height, width, _ = image.shape
+  heightR = int(math.ceil(height / 10.0)) * 10
+  widthR = int(math.ceil(width / 10.0)) * 10
+
+  botlocations = _find_chairbots(image)
+  count = 0
+  bots = []
+  while count <= len(botlocations)-1:
+    bots.append(botlocations[count][0]/10)
+    count+=1
+  bot1X = int(bots[0][0])
+  bot1Y = int(bots[0][1])
+  bot2X = int(bots[1][0])
+  bot2Y = int(bots[1][1])
+  print("Height: ", heightR)
+  print("Width: ", widthR)
+
   
-  arrow_image = drawArrow(image, (height/2, width/2), 30)
-  cv2.imshow('image', arrow_image)
-  cv2.waitKey()
+  smallgrid = np.zeros((int(heightR/10),int(widthR/10)))
+  for i in range(10):
+    for j in range(10):
+      smallgrid[i+bot1Y,j+bot1X] = 255
+      smallgrid[i+bot2Y,j+bot2X] = 255
+  cv2_imshow(smallgrid)
+  print(smallgrid)
 
 
 def _find_chairbots(image):
@@ -103,6 +125,9 @@ def _test_on_chairbots():
 
 
 if __name__ == "__main__":
-  _test_on_chairbots()
+  image = cv2.imread('chairbot.png')
+  #cv2_imshow(image)
+  print(_find_chairbots(image))
+  _test_on_real_image()
 
 
