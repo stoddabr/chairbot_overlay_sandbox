@@ -100,12 +100,57 @@ def _test_on_blank_image():
 
 def _test_on_real_image():
   # execute only if run as a script
+  def _test_on_real_image():
+  # execute only if run as a script
   image = cv2.imread('images/chairbot_noAR_1.png')
   height, width, _ = image.shape
 
   arrow_image = drawArrow(image, (height/2, width/2), 30)
   cv2.imshow('image', arrow_image)
   cv2.waitKey()
+
+def _test_on_real_image_smallgrid():  # note: untested as of 4/23
+  # execute only if run as a script
+  def _test_on_real_image():
+  # execute only if run as a script
+  image = cv2.imread('images/chairbot_noAR_1.png')
+  height, width, _ = image.shape
+  
+  heightR = int(math.ceil(height / 10.0)) * 10
+  widthR = int(math.ceil(width / 10.0)) * 10
+
+  botlocations = _find_chairbots(image)
+  count = 0
+  bots = []
+  
+  # this should do the following but cleaner/easier-to-read syntax
+  # for bot in botlocations:
+  #  bots.append(bot[0]/10)
+    
+  while count <= len(botlocations)-1:
+    bots.append(botlocations[count][0]/10)
+    count+=1
+    
+  # this should do the following but more robust to variable numbers of robots
+  #for bot in bots:
+  #  botx = int(bot[0])
+  #  boty = int(bot[1])
+  
+  bot1X = int(bots[0][0])
+  bot1Y = int(bots[0][1])
+  bot2X = int(bots[1][0])
+  bot2Y = int(bots[1][1])
+
+  print("Height: ", heightR)
+  print("Width: ", widthR)
+  
+  smallgrid = np.zeros((int(heightR/10),int(widthR/10)))
+  for i in range(10):
+    for j in range(10):
+      smallgrid[i+bot1Y,j+bot1X] = 255
+      smallgrid[i+bot2Y,j+bot2X] = 255
+  cv2_imshow(smallgrid)
+  print(smallgrid)
 
 
 def _find_chairbots(image):
@@ -165,4 +210,14 @@ def _test_on_chairbots():
 
 
 if __name__ == "__main__":
-  _test_on_chairbots()
+  TEST_ON_CHAIRBOTS = False
+  TEST_ON_REAL_IMAGE = False
+  
+  if TEST_ON_CHAIRBOTS:
+    _test_on_chairbots()
+
+  if TEST_ON_REAL_IMAGE:
+    image = cv2.imread('chairbot.png')
+    #cv2_imshow(image)
+    print(_find_chairbots(image))
+    _test_on_real_image()
