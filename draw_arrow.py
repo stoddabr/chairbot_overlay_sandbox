@@ -100,8 +100,6 @@ def _test_on_blank_image():
 
 def _test_on_real_image():
   # execute only if run as a script
-  def _test_on_real_image():
-  # execute only if run as a script
   image = cv2.imread('images/chairbot_noAR_1.png')
   height, width, _ = image.shape
 
@@ -110,8 +108,6 @@ def _test_on_real_image():
   cv2.waitKey()
 
 def _test_on_real_image_smallgrid():  # note: untested as of 4/23
-  # execute only if run as a script
-  def _test_on_real_image():
   # execute only if run as a script
   image = cv2.imread('images/chairbot_noAR_1.png')
   height, width, _ = image.shape
@@ -210,14 +206,14 @@ def _test_on_chairbots():
 
 
 if __name__ == "__main__":
-  TEST_ON_CHAIRBOTS = False
-  TEST_ON_REAL_IMAGE = False
+  TEST_ON_CHAIRBOTS = True
+  TEST_ON_REAL_IMAGE = True
   
   if TEST_ON_CHAIRBOTS:
     _test_on_chairbots()
 
   if TEST_ON_REAL_IMAGE:
-    image = cv2.imread('chairbot.png')
+    image = cv2.imread('images/chairbot_noAR_1.png')
     #cv2_imshow(image)
     print(_find_chairbots(image))
     _test_on_real_image()
