@@ -1,29 +1,90 @@
 import cv2
 import numpy as np
-import math 
+import math
 
-def drawArrow(img, coords, orientation, color=(255,0,0), thickness = 10):
+
+#def draw_path():
+
+
+def rotate_pts(x1, y1, orientation, origin):
+  #pt (x0, y0) will always be the origin
+  x0, y0 = origin
+
+  orientation = (orientation - 180) / (180/math.pi)
+
+  #angle a is the angle the pt will rotate around the orgin
+  x2 = ((x1 - x0) * math.cos(orientation)) - ((y1 - y0) * math.sin(orientation)) + x0
+  y2 = ((x1 - x0) * math.sin(orientation)) + ((y1 - y0) * math.cos(orientation)) + y0
+
+  update1 = int(math.ceil(x2))
+  update2 = int(math.ceil(y2))
+  updated_coords = update1, update2
+
+  return updated_coords
+
+def drawArrow(img, coords, orientation, color=(218,224,64), thickness = 3, delta=50, offset=15):
   """ draw an arrow overlay on the image at the coordinates """
 
   x, y = coords
   x = int(x)
   y = int(y)
   # points for an arrow centered at coords pointing right (zero degree angle)
-  delta = 50  # TODO tune for full sized image
-  left_pt = np.array([x,y-delta])
-  right_pt = np.array([x,y+delta])
-  tip_pt = np.array([x+delta,y])  
+  left_x = x+offset
+  left_y = y-delta
+  right_x = x+offset
+  right_y = y+delta
+  tip_x = x+delta+offset
+  tip_y = y
 
-  # TODO rotate based on orientation
-  # https://stackoverflow.com/questions/7953316/rotate-a-point-around-a-point-with-opencv 
+  origin = (x, y)
+
+  left = rotate_pts(left_x, left_y, orientation, origin)
+  right = rotate_pts(right_x, right_y, orientation, origin)
+  tip = rotate_pts(tip_x, tip_y, orientation, origin)
+
+
+  left_pt = np.array([left])
+  right_pt = np.array([right])
+  tip_pt = np.array([tip])
 
   triangle_cnt = np.array( [left_pt, right_pt, tip_pt] )
 
-  # Using cv2.polylines() method 
-  # Draw a Blue polygon with  
-  # thickness of 1 px 
+
+
+  a = 50
+  b = 300
+
+  c = 0
+  d = 300
+  
+  for i in range(4):
+    for j in range(4):
+      cv2.line(img, (c, d), (a,b), (255,0,0), 10)
+      c = a
+      d = b
+      a = a + 50
+      cv2.line(img, (c, d), (a,b), (255,0,0), 10)
+      c = a
+      d = b
+      b = b - 50
+    for z in range(4):
+      cv2.line(img, (c, d), (a,b), (255,0,0), 10)
+      c = a
+      d = b
+      a = a + 50
+      cv2.line(img, (c, d), (a,b), (255,0,0), 10)
+      c = a
+      d = b
+      b = b + 50
+    
+
+
+  # Using cv2.polylines() method
+  # Draw a Blue polygon with
+  # thickness of 1 px
   isClosed = True
-  return cv2.drawContours(img, [triangle_cnt], 0, color, thickness)
+  return cv2.drawContours(img, [triangle_cnt], -1, color, thickness)
+
 
 
 def _test_on_blank_image():
@@ -31,7 +92,7 @@ def _test_on_blank_image():
   height = 100
   width = 100
   blank_image = np.zeros((height,width,3), np.uint8)
-  
+
   arrow_image = drawArrow(blank_image, (height/2, width/2), 30)
   cv2.imshow('image', arrow_image)
   cv2.waitKey()
@@ -43,22 +104,45 @@ def _test_on_real_image():
   # execute only if run as a script
   image = cv2.imread('images/chairbot_noAR_1.png')
   height, width, _ = image.shape
+
+  arrow_image = drawArrow(image, (height/2, width/2), 30)
+  cv2.imshow('image', arrow_image)
+  cv2.waitKey()
+
+def _test_on_real_image_smallgrid():  # note: untested as of 4/23
+  # execute only if run as a script
+  def _test_on_real_image():
+  # execute only if run as a script
+  image = cv2.imread('images/chairbot_noAR_1.png')
+  height, width, _ = image.shape
+  
   heightR = int(math.ceil(height / 10.0)) * 10
   widthR = int(math.ceil(width / 10.0)) * 10
 
   botlocations = _find_chairbots(image)
   count = 0
   bots = []
+  
+  # this should do the following but cleaner/easier-to-read syntax
+  # for bot in botlocations:
+  #  bots.append(bot[0]/10)
+    
   while count <= len(botlocations)-1:
     bots.append(botlocations[count][0]/10)
     count+=1
+    
+  # this should do the following but more robust to variable numbers of robots
+  #for bot in bots:
+  #  botx = int(bot[0])
+  #  boty = int(bot[1])
+  
   bot1X = int(bots[0][0])
   bot1Y = int(bots[0][1])
   bot2X = int(bots[1][0])
   bot2Y = int(bots[1][1])
+
   print("Height: ", heightR)
   print("Width: ", widthR)
-
   
   smallgrid = np.zeros((int(heightR/10),int(widthR/10)))
   for i in range(10):
@@ -100,6 +184,7 @@ def _find_chairbots(image):
             theta = math.atan2(ydeltacords[1], ydeltacords[0])
             # Changes theta from radians to positive degrees (0 to 360 rotating counter-clockwise)
             degree = theta * (180 / math.pi) + 180
+
             found_chairbots.append([midcords, degree ])
         except IndexError:
           print('IndexError thrown and passed while looping through aruco markers')
@@ -125,9 +210,14 @@ def _test_on_chairbots():
 
 
 if __name__ == "__main__":
-  image = cv2.imread('chairbot.png')
-  #cv2_imshow(image)
-  print(_find_chairbots(image))
-  _test_on_real_image()
+  TEST_ON_CHAIRBOTS = False
+  TEST_ON_REAL_IMAGE = False
+  
+  if TEST_ON_CHAIRBOTS:
+    _test_on_chairbots()
 
-
+  if TEST_ON_REAL_IMAGE:
+    image = cv2.imread('chairbot.png')
+    #cv2_imshow(image)
+    print(_find_chairbots(image))
+    _test_on_real_image()
