@@ -3,8 +3,49 @@ import numpy as np
 import math
 
 
-#def draw_path():
+def blend_images():
+  alpha = 0.65
 
+  # [load]
+  src1 = cv2.imread('images/chairbot_noAR_1.png')
+  src2 = cv2.imread('images/chairbot_noAR_1_adjust.png')
+  # [blend_images]
+  beta = (1.0 - alpha)
+  im_blend = cv2.addWeighted(src1, alpha, src2, beta, 0.0)
+  # [display]
+  cv2.imshow('im_blend', im_blend)
+  cv2.waitKey()
+  # [display]
+  cv2.destroyAllWindows()
+
+
+#function would be called via for loop for however many points there are in the path
+#parameters would include starting coordinate points and new coordinate points
+def draw_path(img):
+  a = 50
+  b = 300
+
+  c = 0
+  d = 300
+  for i in range(4):
+    for j in range(4):
+      cv2.line(img, (c, d), (a,b), (255,0,0), 10)
+      c = a
+      d = b
+      a = a + 50
+      cv2.line(img, (c, d), (a,b), (255,0,0), 10)
+      c = a
+      d = b
+      b = b - 50
+    for z in range(4):
+      cv2.line(img, (c, d), (a,b), (255,0,0), 10)
+      c = a
+      d = b
+      a = a + 50
+      cv2.line(img, (c, d), (a,b), (255,0,0), 10)
+      c = a
+      d = b
+      b = b + 50
 
 def rotate_pts(x1, y1, orientation, origin):
   #pt (x0, y0) will always be the origin
@@ -49,34 +90,8 @@ def drawArrow(img, coords, orientation, color=(218,224,64), thickness = 3, delta
 
   triangle_cnt = np.array( [left_pt, right_pt, tip_pt] )
 
-
-
-  a = 50
-  b = 300
-
-  c = 0
-  d = 300
-  
-  for i in range(4):
-    for j in range(4):
-      cv2.line(img, (c, d), (a,b), (255,0,0), 10)
-      c = a
-      d = b
-      a = a + 50
-      cv2.line(img, (c, d), (a,b), (255,0,0), 10)
-      c = a
-      d = b
-      b = b - 50
-    for z in range(4):
-      cv2.line(img, (c, d), (a,b), (255,0,0), 10)
-      c = a
-      d = b
-      a = a + 50
-      cv2.line(img, (c, d), (a,b), (255,0,0), 10)
-      c = a
-      d = b
-      b = b + 50
     
+  
 
 
   # Using cv2.polylines() method
@@ -94,7 +109,7 @@ def _test_on_blank_image():
   blank_image = np.zeros((height,width,3), np.uint8)
 
   arrow_image = drawArrow(blank_image, (height/2, width/2), 30)
-  cv2.imshow('image', arrow_image)
+  #cv2.imshow('image', arrow_image)
   cv2.waitKey()
 
 
@@ -104,7 +119,7 @@ def _test_on_real_image():
   height, width, _ = image.shape
 
   arrow_image = drawArrow(image, (height/2, width/2), 30)
-  cv2.imshow('image', arrow_image)
+  #cv2.imshow('image', arrow_image)
   cv2.waitKey()
 
 def _test_on_real_image_smallgrid():  # note: untested as of 4/23
@@ -198,8 +213,16 @@ def _test_on_chairbots():
     chair_x, chair_y = chair[0]
     chair_angle = chair[1]
     arrow_image = drawArrow(image, (chair_x, chair_y), chair_angle)
+  path_img = draw_path(image)
   cv2.imshow('image', arrow_image)
+  cv2.imwrite('images/chairbot_noAR_1_adjust.png', image)
+
+  #blend images
+  blend_images()
+
   cv2.waitKey()
+
+
 
 
 
