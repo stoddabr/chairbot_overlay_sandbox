@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import math
+import path_planner
 
 #color = Blue, Green, Red
 
@@ -79,6 +80,7 @@ def drawArrow(img, coords, orientation, color=(218,224,64), thickness = 3, delta
   x, y = coords
   x = int(x)
   y = int(y)
+
   # points for an arrow centered at coords pointing right (zero degree angle)
   left_x = x+offset
   left_y = y-delta
@@ -219,13 +221,15 @@ def _test_on_chairbots():
   chairs = _find_chairbots(image)
   print('chairs found: ',chairs)
 
-  for chair in chairs:
-    chair_x, chair_y = chair[0]
-    chair_angle = chair[1]
+  num_chairs = len(chairs)
+
+  for chair in range(num_chairs):
+    coord_orientation = path_planner.scaled_bots()
+    chair_x, chair_y, chair_angle = coord_orientation[chair]
     arrow_image = drawArrow(image, (chair_x, chair_y), chair_angle)
 
-  path_img = draw_path(image, 50, 300, 0 , 300, (0,0,255))
-  path_img_two = draw_path(image, 70, 500, 0, 800, (0,224,0))
+ # path_img = draw_path(image, 50, 300, 0 , 300, (0,0,255))
+ # path_img_two = draw_path(image, 70, 500, 0, 800, (0,224,0))
 
   #real path example
   paths = [[(300, 430)], [(370, 640), (360, 630), (350, 620), (340, 610), (330, 600), (320, 590), (310, 580), (300, 570), (300, 560), (300, 550), (300, 540), (300, 530), (300, 520), (300, 510), (300, 500), (300, 490), (300, 480), (300, 470), (300, 460), (300, 450), (300, 440), (300, 430)]]
