@@ -1,14 +1,16 @@
 import cv2
 import numpy as np
 import math
+import path_planner
 
+#color = Blue, Green, Red
 
 def blend_images():
-  alpha = 0.65
+  alpha = 0.5
 
   # [load]
-  src1 = cv2.imread('images/chairbot_noAR_1.png')
-  src2 = cv2.imread('images/chairbot_noAR_1_adjust.png')
+  src1 = cv2.imread('images/chairbot_noAR_4.png')
+  src2 = cv2.imread('images/chairbot_noAR_4_adjust.png')
   # [blend_images]
   beta = (1.0 - alpha)
   im_blend = cv2.addWeighted(src1, alpha, src2, beta, 0.0)
@@ -18,34 +20,20 @@ def blend_images():
   # [display]
   cv2.destroyAllWindows()
 
+def draw_real_path(img, coord_one, coord_two, color, thickness = 10):
+  x, y, z = coord_one
+  x = int(x)
+  y = int(y)
+  z = int(z)
+  a, b, c = coord_two
+  a = int(a)
+  b = int(b)
+  c = int(c)
+  cv2.line(img, (x, y), (a, b), color, thickness)
 
-#function would be called via for loop for however many points there are in the path
-#parameters would include starting coordinate points and new coordinate points
-def draw_path(img):
-  a = 50
-  b = 300
 
-  c = 0
-  d = 300
-  for i in range(4):
-    for j in range(4):
-      cv2.line(img, (c, d), (a,b), (255,0,0), 10)
-      c = a
-      d = b
-      a = a + 50
-      cv2.line(img, (c, d), (a,b), (255,0,0), 10)
-      c = a
-      d = b
-      b = b - 50
-    for z in range(4):
-      cv2.line(img, (c, d), (a,b), (255,0,0), 10)
-      c = a
-      d = b
-      a = a + 50
-      cv2.line(img, (c, d), (a,b), (255,0,0), 10)
-      c = a
-      d = b
-      b = b + 50
+def red_circle(img, center, color=(0, 0, 255), thickness = 10):
+  cv2.circle(img, center, 34, color, thickness)
 
 def rotate_pts(x1, y1, orientation, origin):
   #pt (x0, y0) will always be the origin
@@ -69,6 +57,7 @@ def drawArrow(img, coords, orientation, color=(218,224,64), thickness = 3, delta
   x, y = coords
   x = int(x)
   y = int(y)
+
   # points for an arrow centered at coords pointing right (zero degree angle)
   left_x = x+offset
   left_y = y-delta
@@ -89,10 +78,6 @@ def drawArrow(img, coords, orientation, color=(218,224,64), thickness = 3, delta
   tip_pt = np.array([tip])
 
   triangle_cnt = np.array( [left_pt, right_pt, tip_pt] )
-
-    
-  
-
 
   # Using cv2.polylines() method
   # Draw a Blue polygon with
@@ -115,7 +100,7 @@ def _test_on_blank_image():
 
 def _test_on_real_image():
   # execute only if run as a script
-  image = cv2.imread('images/chairbot_noAR_1.png')
+  image = cv2.imread('images/chairbot_noAR_4.png')
   height, width, _ = image.shape
 
   arrow_image = drawArrow(image, (height/2, width/2), 30)
@@ -124,7 +109,7 @@ def _test_on_real_image():
 
 def _test_on_real_image_smallgrid():  # note: untested as of 4/23
   # execute only if run as a script
-  image = cv2.imread('images/chairbot_noAR_1.png')
+  image = cv2.imread('images/chairbot_noAR_4.png')
   height, width, _ = image.shape
   
   heightR = int(math.ceil(height / 10.0)) * 10
@@ -204,28 +189,37 @@ def _find_chairbots(image):
 
 def _test_on_chairbots():
   # execute only if run as a script
-  image = cv2.imread('images/chairbot_noAR_1.png')
+  image = cv2.imread('images/chairbot_noAR_4.png')
   height, width, _ = image.shape
   chairs = _find_chairbots(image)
   print('chairs found: ',chairs)
+
 
   for chair in chairs:
     chair_x, chair_y = chair[0]
     chair_angle = chair[1]
     arrow_image = drawArrow(image, (chair_x, chair_y), chair_angle)
-  path_img = draw_path(image)
-  cv2.imshow('image', arrow_image)
-  cv2.imwrite('images/chairbot_noAR_1_adjust.png', image)
+
+
+  paths = path_planner.main()
+
+  for path in paths:
+    if len(path) == 1:
+      #draw red circle here
+      red_circle(image, path[0]) #coords of chair passed in 
+    else:
+      for i in range(len(path)-1):
+        draw_real_path(image, path[i], path[i+1], (50, i*10 + 10, 108))
+    
+
+  #draws regular image without opacit/blur effect
+  #cv2.imshow('image', arrow_image)
+  cv2.imwrite('images/chairbot_noAR_4_adjust.png', image)
 
   #blend images
   blend_images()
 
   cv2.waitKey()
-
-
-
-
-
 
 
 if __name__ == "__main__":
@@ -236,7 +230,7 @@ if __name__ == "__main__":
     _test_on_chairbots()
 
   if TEST_ON_REAL_IMAGE:
-    image = cv2.imread('images/chairbot_noAR_1.png')
+    image = cv2.imread('images/chairbot_noAR_4.png')
     #cv2_imshow(image)
     print(_find_chairbots(image))
     _test_on_real_image()
